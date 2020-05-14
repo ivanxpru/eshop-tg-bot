@@ -1,8 +1,10 @@
 const bot = require('./modules/bot');
-const getAllgames = require('./modules/getAllGames');
+const getAllGames = require('./modules/getAllGames');
+
+getAllGames();
 
 setInterval(() => { // Поиск игр новых игр раз  в сутки
-  getAllgames();
+  getAllGames();
 }, 1000 * 60 * 60 * 24);
 
 bot.on('message', async (ctx) => {

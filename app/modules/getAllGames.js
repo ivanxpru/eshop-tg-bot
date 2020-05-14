@@ -7,6 +7,7 @@ const channel = process.env.CHANNEL;
 const url = 'https://eshopdb.ivanxpru.repl.co/api/v1.0/games/full';
 
 const getAllgames = () => {
+  console.log('getAllGames run');
   let games;
   getData(url)
     .then((res) => {
