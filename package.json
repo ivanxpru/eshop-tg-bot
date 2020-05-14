@@ -1,0 +1,32 @@
+{
+  "name": "eshop-tg-bot",
+  "version": "1.0.0",
+  "description": "unofficial Nintendo eShop Telegram bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ivanxpru/eshop-tg-bot.git"
+  },
+  "keywords": [
+    "eshop",
+    "telegram-bot"
+  ],
+  "author": "ivanxpru",
+  "license": "GPLv3",
+  "bugs": {
+    "url": "https://github.com/ivanxpru/eshop-tg-bot/issues"
+  },
+  "homepage": "https://github.com/ivanxpru/eshop-tg-bot#readme",
+  "devDependencies": {
+    "eslint": "^7.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "mongodb": "^3.5.7",
+    "telegraf": "^3.38.0",
+    "telegraf-i18n": "^6.6.0"
+  }
+}
