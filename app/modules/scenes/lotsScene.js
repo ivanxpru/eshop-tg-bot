@@ -48,23 +48,33 @@ lotsScene.enter(async (ctx) => {
     ctx.scene.leave();
   }
 })
-  .action('all', (ctx, next) => {
+  .action('all', async (ctx, next) => {
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.scene.enter('lots_scene_st1');
     return next();
   })
-  .action('active', (ctx, next) => {
+  .action('active', async (ctx, next) => {
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.scene.enter('lots_scene_st2');
     return next();
   })
-  .action('archive', (ctx, next) => {
+  .action('archive', async (ctx, next) => {
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.scene.enter('lots_scene_st3');
     return next();
   })
-  .action('sold', (ctx, next) => {
+  .action('sold', async (ctx, next) => {
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.scene.enter('lots_scene_st4');
     return next();
   })
-  .action('banned', (ctx, next) => {
+  .action('banned', async (ctx, next) => {
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.scene.enter('lots_scene_st5');
     return next();
   })
@@ -87,11 +97,14 @@ lotsSceneSt1.enter(async (ctx) => {
   await ctx.replyWithMarkdown(ctx.i18n.t('lots_scene_st1_0'), Extra.markup(keyboard));
 })
   .action('back', async (ctx, next) => {
-    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id);
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.scene.enter('lots_scene');
     return next();
   })
-  .on('callback_query', (ctx, next) => {
+  .on('callback_query', async (ctx, next) => {
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.session.scene = ctx.session.__scenes.current;
     ctx.session.state.lot._id = ctx.update.callback_query.data.split('_')[1];
     if (ctx.session.state.lot._id) {
@@ -130,11 +143,14 @@ lotsSceneSt2.enter(async (ctx) => {
   }
 })
   .action('back', async (ctx, next) => {
-    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id);
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.scene.enter('lots_scene');
     return next();
   })
-  .on('callback_query', (ctx, next) => {
+  .on('callback_query', async (ctx, next) => {
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.session.scene = ctx.session.__scenes.current;
     ctx.session.state.lot._id = ctx.update.callback_query.data.split('_')[1];
     if (ctx.session.state.lot._id) {
@@ -173,11 +189,14 @@ lotsSceneSt3.enter(async (ctx, next) => {
   }
 })
   .action('back', async (ctx, next) => {
-    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id);
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.scene.enter('lots_scene');
     return next();
   })
-  .on('callback_query', (ctx, next) => {
+  .on('callback_query', async (ctx, next) => {
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.session.scene = ctx.session.__scenes.current;
     ctx.session.state.lot._id = ctx.update.callback_query.data.split('_')[1];
     if (ctx.session.state.lot._id) {
@@ -215,11 +234,14 @@ lotsSceneSt4.enter(async (ctx) => {
   }
 })
   .action('back', async (ctx, next) => {
-    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id);
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.scene.enter('lots_scene');
     return next;
   })
-  .on('callback_query', (ctx, next) => {
+  .on('callback_query', async (ctx, next) => {
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.session.scene = ctx.session.__scenes.current;
     ctx.session.state.lot._id = ctx.update.callback_query.data.split('_')[1];
     if (ctx.session.state.lot._id) {
@@ -257,11 +279,14 @@ lotsSceneSt5.enter(async (ctx) => {
   }
 })
   .action('back', async (ctx, next) => {
-    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id);
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.scene.enter('lots_scene');
     return next();
   })
-  .on('callback_query', (ctx, next) => {
+  .on('callback_query', async (ctx, next) => {
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.session.scene = ctx.session.__scenes.current;
     ctx.session.state.lot._id = ctx.update.callback_query.data.split('_')[1];
     if (ctx.session.state.lot._id) {
@@ -326,21 +351,29 @@ lotsSceneSt6.enter(async (ctx) => {
   }
 })
   .action('toArchive', async (ctx, next) => {
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     await getLot.changeStatus(ctx.session.state.lot._id, 'archive');
     ctx.scene.reenter();
     return next();
   })
   .action('toActive', async (ctx, next) => {
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     await getLot.changeStatus(ctx.session.state.lot._id, 'active');
     ctx.scene.reenter();
     return next();
   })
   .action('toSold', async (ctx, next) => {
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     await getLot.changeStatus(ctx.session.state.lot._id, 'sold');
     ctx.scene.reenter();
     return next();
   })
-  .action('back', (ctx, next) => {
+  .action('back', async (ctx, next) => {
+    await ctx.telegram.deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
+      .catch(() => {});
     ctx.scene.enter(ctx.session.scene);
     return next();
   })
