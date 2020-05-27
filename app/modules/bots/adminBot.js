@@ -9,25 +9,31 @@ const logger = require('../logger');
 // Бот для администраторов
 const adminBot = new Composer();
 
+/*
 adminBot.start(async (ctx) => {
   const keyboard = Markup.keyboard([['/users', '/lots']])
     .resize()
     .oneTime();
   await ctx.reply('Menu ready', Extra.markup(keyboard));
 });
+*/
 
+/*
 // Информация по пользователе
 adminBot.command('user', async (ctx) => {
   const user_id = ctx.message.text.split(' ')[1];
   await ctx.reply(`Информация о пользователе ${user_id}`);
 });
+*/
 
+/*
 // Список пользователей
 adminBot.command('users', async (ctx) => {
   let message = '';
   message += '*Список пользователей*';
   await ctx.replyWithMarkdown(message);
 });
+*/
 
 // Верификация пользователя
 adminBot.command('verify', async (ctx) => {
