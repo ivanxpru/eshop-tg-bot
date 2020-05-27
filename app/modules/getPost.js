@@ -1,9 +1,11 @@
-const getData = require('./getData');
-const regions = require('../data/regions.json');
+const redis = require('redis');
+const getPrices = require('./getPrices');
+
+const redis_client = redis.createClient();
 
 const botname = process.env.BOT_USERNAME;
-const url_cbr = 'https://www.cbr-xml-daily.ru/daily_json.js';
-const platfrorms = [
+
+const physical_platfrorms = [
   'Nintendo Entertainment System',
   'Commodore 64',
   'Game Boy',
@@ -15,106 +17,97 @@ const platfrorms = [
   'Super Nintendo',
   'Nintendo 64',
 ];
-let cbr;
-getData(url_cbr)
-  .then((data) => { cbr = data; })
-  .catch((e) => console.error(e));
 
-const getPost = async (data) => {
-  const response = {};
-  const keyboard = [];
-  let system = '';
-  let physical_version;
-  let platform = '';
-  data.system.forEach(async (el) => {
-    if (platfrorms.includes(el)) {
-      physical_version = true;
-    }
-    platform = el.replace(/ /g, '_');
-    system += `#${platform} `;
-  });
-  let title = `[${data.title_ru}](https://nintendo.ru${data.url})\n ${system}`;
-  title = title.replace(/_/g, '\\_');
-  const { description } = data;
-  let hashtags = '';
-  if (data.categories) {
-    data.categories.forEach((category) => {
-      hashtags += `#${category} `;
-    });
-    hashtags += '\n';
-  }
-  if (data.languages) {
-    data.languages.forEach((lang) => {
-      hashtags += `#${lang} `;
-    });
-  }
-  let prices = '';
-  let prices_eu = '';
-  if (data.nsuid) {
-    const url_ru = `https://api.ec.nintendo.com/v1/price?country=RU&lang=en&ids=${data.nsuid}`;
-    await getData(url_ru)
-      .then((res) => {
-        if (res.prices && res.prices[0].regular_price) {
-          prices += `🇷🇺 ${res.prices[0].regular_price.raw_value}₽ \n`;
+const getPost = (data, discount_b) =>
+  new Promise((resolve, reject) => {
+    redis_client.get(data.nsuid_txt[0], async (_err, reply) => {
+      if (!reply) {
+        const post = {};
+        let prices;
+        if (Number.isInteger(Number.parseInt(data.nsuid_txt[0], 10))) {
+          post.nsuid = data.nsuid_txt;
+          await getPrices(data.nsuid_txt[0], discount_b)
+            .then((res) => {
+              prices = res;
+            })
+            .catch(() => {});
+          if (!prices) {
+            // return reject(new Error('no get prices'));
+          }
+          const keyboard = [];
+          let physical_version = false;
+          let nx = false;
+          let system = '';
+          let hashtags = '';
+          let image;
+          data.system_names_txt.forEach((platform) => {
+            if (platform === 'Nintendo Switch') {
+              nx = true;
+            }
+            system += `#${platform.replace(/ /g, '_')} `;
+            if (physical_platfrorms.includes(platform)) {
+              physical_version = true;
+            }
+          });
+          if (data.physical_version_b || physical_version) {
+            const buttons = [];
+            let button = {};
+            button.text = 'Купить б/у';
+            button.url = `https://t.me/${botname}?start=buy_${data.nsuid_txt[0]}`;
+            buttons.push(button);
+            button = {};
+            button.text = 'Продать б/у';
+            button.url = `https://t.me/${botname}?start=sell_${data.nsuid_txt[0]}`;
+            buttons.push(button);
+            keyboard.push(buttons);
+          }
+          if ((data.cloud_saves_b && nx) || (data.internet && nx)) {
+            const buttons = [];
+            const button = {};
+            button.text = 'Nintendo Switch Online (350 р./год)';
+            button.url = `https://t.me/${botname}?start=family_subscribe`;
+            buttons.push(button);
+            keyboard.push(buttons);
+          }
+          data.game_categories_txt.forEach((category) => {
+            hashtags += `#${category} `;
+          });
+          hashtags += '\n';
+          data.language_availability[0].split(',').forEach((language) => {
+            hashtags += `#${language} `;
+          });
+          hashtags = hashtags.replace(/_/g, '\\_');
+          let title = `[${data.title}](https://nintendo.ru${data.url})\n${system}`;
+          title = title.replace(/_/g, '\\_');
+          const description = data.excerpt;
+          if (data.wishlist_email_banner460w_image_url_s) {
+            image = `https:${data.wishlist_email_banner460w_image_url_s}`;
+          } else {
+            image =
+              'https://upload.wikimedia.org/wikipedia/commons/9/95/Nintendo_Logo_2017.png';
+          }
+          image = image.replace(/_/g, '_');
+          if (prices) {
+            post.message = `${title}\n\n${description}\n${hashtags}\n\n${prices.prices}`;
+          } else {
+            post.message = `${title}\n\n${description}\n${hashtags}\n\nSOLD OUT`;
+          }
+          post.image = image;
+          if (keyboard) {
+            post.keyboard = keyboard;
+          }
+          if (discount_b && prices.discount_end_date) {
+            post.discount_end_date = prices.discount_end_date;
+          }
+          resolve(post);
+        } else {
+          console.log(data.title, data.nsuid_txt[0]);
+          reject(new Error(`Not valid nsuid: ${data.nsuid_txt[0]}`));
         }
-      })
-      .catch((e) => {
-        console.log(url_ru, e);
-      });
-    await Object.keys(regions.EU).forEach((region, index) => {
-      setTimeout(async () => {
-        const url_eu = `https://api.ec.nintendo.com/v1/price?country=${region}&lang=en&ids=${data.nsuid}`;
-        await getData(url_eu)
-          .then((res) => {
-            if (res.prices && res.prices[0].regular_price) {
-              prices_eu = Math.round((cbr.Valute.EUR.Value / cbr.Valute.EUR.Nominal) * res.prices[0].regular_price.raw_value);
-              prices += `🇪🇺 ${prices_eu}₽\n`;
-            }
-          });
-      }, index * 10000);
+      } else {
+        reject();
+      }
     });
-    Object.keys(regions.NONEU).forEach((region, index) => {
-      let price_noneu;
-      setTimeout(async () => {
-        const url_noneu = `https://api.ec.nintendo.com/v1/price?country=${region}&lang=en&ids=${data.nsuid}`;
-        await getData(url_noneu)
-          .then((res) => {
-            if (res.prices && res.prices[0].regular_price) {
-              const { currency } = regions.NONEU[region];
-              price_noneu = Math.round((cbr.Valute[currency].Value / cbr.Valute[currency].Nominal) * res.prices[0].regular_price.raw_value);
-              if (price_noneu) {
-                price_noneu = `${regions.NONEU[region].flag} ${price_noneu}₽\n`;
-                prices += `${price_noneu}\n`;
-              }
-            }
-          });
-      }, index * 10000);
-    });
-  }
-  if (data.physical_version || physical_version) {
-    const buttons = [];
-    let button = {};
-    button.text = 'Купить б/у';
-    button.url = `https://t.me/${botname}?start=buy_${data.nsuid}`;
-    buttons.push(button);
-    button = {};
-    button.text = 'Продать б/у';
-    button.url = `https://t.me/${botname}?start=sell_${data.nsuid}`;
-    buttons.push(button);
-    keyboard.push(buttons);
-  }
-  if (data.cloud_saves || data.subscription) {
-    const buttons = [];
-    const button = {};
-    button.text = 'Nintendo Switch Online (350 р./год)';
-    button.url = `https://t.me/${botname}?start=family_subscribe`;
-    buttons.push(button);
-    keyboard.push(buttons);
-  }
-  response.message = `${title}\n\n${description}\n${hashtags}\n\n${prices}\n`;
-  response.keyboard = keyboard;
-  response.image = data.boxart_wide;
-  return response;
-};
+  });
 
 module.exports = getPost;

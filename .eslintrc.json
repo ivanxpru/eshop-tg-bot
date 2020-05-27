@@ -9,7 +9,6 @@
         "prettier"
     ],
     "plugins": [
-        "sonarjs",
         "prettier"
     ],
     "globals": {

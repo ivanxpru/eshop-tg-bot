@@ -13,10 +13,10 @@ const getData = (url) => new Promise((resolve, reject) => {
         }
       });
     } else {
-      reject(res.statusCode);
+      reject(new Error(`getData ${url} ${res.statusCode}`));
     }
-  }).on('error', (e) => {
-    reject(e.message);
+  }).on('error', (_e) => {
+    reject();
   });
 });
 

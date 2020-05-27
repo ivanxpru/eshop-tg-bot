@@ -1,38 +1,39 @@
 require('dotenv').config();
+
+const delay = require('delay');
 const getData = require('./getData');
 const getPost = require('./getPost');
-const bot = require('./bot');
+const doPost = require('./doPost');
 
-const channel = process.env.CHANNEL;
-const url = 'https://eshopdb.ivanxpru.repl.co/api/v1.0/games/full';
-
-const getAllgames = () => {
-  console.log('getAllGames run');
-  let games;
-  getData(url)
-    .then((res) => {
-      games = res.games;
-    })
-    .then(() => {
-      games.forEach((game, index) => {
-        setTimeout(() => {
-          getPost(game)
-            .then((res) => {
-              const options = {
-                caption: res.message,
-                parse_mode: 'Markdown',
-                reply_markup: JSON.stringify({
-                  inline_keyboard: res.keyboard
-                })
-              };
-              bot.telegram.sendPhoto(channel, res.image, options)
-                .catch((err) => {
-                  console.error(err);
-                });
-            });
-        }, index * 10000);
+const getAllgames = async (discount_b) => {
+  const url = 'https://searching.nintendo-europe.com/ru/select?q=*&fq=type%3AGAME%20AND%20*%3A*&sort=date_from%20asc&start=0&rows=9999&wt=json';
+  let games = await getData(url);
+  games = games.response.docs;
+  games = games.filter((docs) => docs.nsuid_txt);
+  if (discount_b) {
+    games = games.filter((docs) => docs.price_has_discount_b);
+  }
+  for await (const game of games) {
+    let post;
+    await getPost(game, discount_b)
+      .then((res) => {
+        post = res;
+      })
+      .catch(() => {
+        console.log('\x1b[31m', game.title, game.nsuid_txt[0], '\x1b[0m');
       });
-    });
+    if (post) {
+      await doPost(post, discount_b)
+        .then(async () => {
+          console.log('\x1b[32m', game.title, game.nsuid_txt[0], '\x1b[0m');
+          await delay(20000);
+        })
+        .catch(() => {
+          console.log('\x1b[31m', game.title, game.nsuid_txt[0], '\x1b[0m');
+        });
+    }
+  }
+  console.log('Done!');
 };
 
 module.exports = getAllgames;
