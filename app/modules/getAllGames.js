@@ -1,12 +1,17 @@
 require('dotenv').config();
 
 const delay = require('delay');
+const redis = require('redis');
 const getData = require('./getData');
 const getPost = require('./getPost');
 const doPost = require('./doPost');
 
+const redis_client = redis.createClient();
+
 const getAllgames = async (discount_b) => {
-  const url = 'https://searching.nintendo-europe.com/ru/select?q=*&fq=type%3AGAME%20AND%20*%3A*&sort=date_from%20asc&start=0&rows=9999&wt=json';
+  redis_client.set('getAllGames', 'true');
+  const url =
+    'https://searching.nintendo-europe.com/ru/select?q=*&fq=type%3AGAME%20AND%20*%3A*&sort=date_from%20asc&start=0&rows=9999&wt=json';
   let games = await getData(url);
   games = games.response.docs;
   games = games.filter((docs) => docs.nsuid_txt);
@@ -33,7 +38,7 @@ const getAllgames = async (discount_b) => {
         });
     }
   }
-  console.log('Done!');
+  redis_client.del('getAllGames');
 };
 
 module.exports = getAllgames;
