@@ -22,5 +22,9 @@ setInterval(() => {
 
 setInterval(() => {
   // Поиск новых игр раз в неделю
-  getAllGames(false);
+  redis_client.get('getAllGames', async (_err, reply) => {
+    if (!reply) {
+      getAllGames(false);
+    }
+  });
 }, 1000 * 60 * 60 * 24 * 7);
