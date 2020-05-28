@@ -3,7 +3,7 @@ const db = require('./db');
 
 const dbURI = process.env.DB_URI;
 const dbName = process.env.DB_NAME;
-const dbCollection = process.env.DB_COLLECTION;
+const dbCollection = 'users';
 
 const verifyUser = (user_id, verify) =>
   new Promise((resolve, reject) => {
