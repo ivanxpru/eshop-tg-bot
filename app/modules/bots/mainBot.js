@@ -199,4 +199,10 @@ bot.start(async (ctx, next) => {
   }
 });
 
+exports.getChat = (user_id) => new Promise((resolve, reject) => {
+  bot.telegram.getChat(user_id)
+    .then(chat => { resolve(chat) })
+    .catch(err => { reject(err) });
+});
+
 module.exports = bot;
