@@ -104,7 +104,7 @@ const getPricesEU = (nsuid, discount) =>
             }
           })
           .catch(() => {
-            reject(new Error('getPricesRU'));
+            reject(new Error('getPricesEU'));
           });
         await delay(1000);
       }
@@ -157,7 +157,7 @@ const getPricesNONEU = (nsuid, discount) =>
             }
           })
           .catch(() => {
-            reject(new Error('getPricesRU'));
+            reject(new Error('getPricesNONEU'));
           });
         await delay(1000);
       }
