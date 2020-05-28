@@ -43,10 +43,10 @@ adminBot.command('verify', async (ctx) => {
   user_id = Number.parseInt(user_id, 10);
   if (user_id && (verify === 'true' || verify === 'false')) {
     verify = JSON.parse(verify);
-    await bot
-      .getUsername(user_id)
-      .then(async (res) => {
-        username = res;
+    await bot.telegram
+      .getChat(user_id)
+      .then(async (chat) => {
+        username = chat.username;
         await verifyUser(user_id, verify)
           .then(() => {
             if (verify) {
