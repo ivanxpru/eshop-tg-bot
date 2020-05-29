@@ -69,9 +69,11 @@ const getPost = (data, discount_b) =>
             buttons.push(button);
             keyboard.push(buttons);
           }
-          data.game_categories_txt.forEach((category) => {
-            hashtags += `#${category} `;
-          });
+          if (data.game_categories_txt) {
+            data.game_categories_txt.forEach((category) => {
+              hashtags += `#${category} `;
+            });
+          }
           hashtags += '\n';
           data.language_availability[0].split(',').forEach((language) => {
             hashtags += `#${language} `;
