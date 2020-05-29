@@ -4,24 +4,29 @@ const Telegraf = require('telegraf');
 const Stage = require('telegraf/stage');
 const Composer = require('telegraf/composer');
 const TelegrafI18n = require('telegraf-i18n');
+const SocksAgent = require('socks5-https-client/lib/Agent');
 const session = require('telegraf/session');
 const RedisSession = require('telegraf-session-redis');
-const SocksAgent = require('socks5-https-client/lib/Agent');
 const adminBot = require('./adminBot');
 const regularBot = require('./regularBot');
 const getData = require('../getData');
 const getUser = require('../getUser');
 
-const socksAgent = new SocksAgent({
-  socksHost: process.env.SOCKS_HOST,
-  socksPort: process.env.SOCKS_PORT,
-});
+let bot;
 
-const bot = new Telegraf(process.env.BOT_TOKEN, {
-  telegram: {
-    agent: socksAgent,
-  },
-});
+if (process.env.SOCKS_HOST && process.env.SOCKS_PORT) {
+  const socksAgent = new SocksAgent({
+    socksHost: process.env.SOCKS_HOST,
+    socksPort: process.env.SOCKS_PORT,
+  });
+  bot = new Telegraf(process.env.BOT_TOKEN, {
+    telegram: {
+      agent: socksAgent,
+    },
+  });
+} else {
+  bot = new Telegraf(process.env.BOT_TOKEN);
+}
 
 const i18n = new TelegrafI18n({
   directory: path.resolve(__dirname, '../../data/locales'),
@@ -41,7 +46,7 @@ const session1 = new RedisSession({
   },
 });
 
-const adminIds = [246542665];
+const adminIds = [246542665, 2205222443];
 
 // Сценарии
 const familyScene = require('../scenes/familyScene');
@@ -199,10 +204,16 @@ bot.start(async (ctx, next) => {
   }
 });
 
-exports.getChat = (user_id) => new Promise((resolve, reject) => {
-  bot.telegram.getChat(user_id)
-    .then(chat => { resolve(chat) })
-    .catch(err => { reject(err) });
-});
+exports.getChat = (user_id) =>
+  new Promise((resolve, reject) => {
+    bot.telegram
+      .getChat(user_id)
+      .then((chat) => {
+        resolve(chat);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
 
 module.exports = bot;
