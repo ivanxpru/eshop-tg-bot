@@ -6,7 +6,7 @@ const logger = require('./modules/logger');
 const redis_client = redis.createClient();
 
 bot.launch().catch((err) => {
-  logger.log('eror', err);
+  logger.log('error', err);
 });
 
 getAllGames(false); // true - искать со скидками, false - все игры
