@@ -5,6 +5,7 @@ const redis = require('redis');
 const getData = require('./getData');
 const getPost = require('./getPost');
 const doPost = require('./doPost');
+const logger = require('./logger');
 
 const redis_client = redis.createClient();
 
@@ -24,17 +25,21 @@ const getAllgames = async (discount_b) => {
       .then((res) => {
         post = res;
       })
-      .catch(() => {
-        console.log('\x1b[31m', game.title, game.nsuid_txt[0], '\x1b[0m');
-      });
+      .catch(() => {});
     if (post) {
       await doPost(post, discount_b)
         .then(async () => {
-          console.log('\x1b[32m', game.title, game.nsuid_txt[0], '\x1b[0m');
           await delay(20000);
         })
         .catch(() => {
-          console.log('\x1b[31m', game.title, game.nsuid_txt[0], '\x1b[0m');
+          logger.log(
+            'error',
+            '\x1b[31m',
+            'doPost',
+            game.title,
+            game.nsuid_txt[0],
+            '\x1b[0m',
+          );
         });
     }
   }
