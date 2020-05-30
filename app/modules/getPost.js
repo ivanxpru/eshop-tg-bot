@@ -73,11 +73,13 @@ const getPost = (data, discount_b) =>
             data.game_categories_txt.forEach((category) => {
               hashtags += `#${category} `;
             });
+            hashtags += '\n';
           }
-          hashtags += '\n';
-          data.language_availability[0].split(',').forEach((language) => {
-            hashtags += `#${language} `;
-          });
+          if (data.language_availability) {
+            data.language_availability[0].split(',').forEach((language) => {
+              hashtags += `#${language} `;
+            });
+          }
           hashtags = hashtags.replace(/_/g, '\\_');
           let title = `[${data.title}](https://nintendo.ru${data.url})\n${system}`;
           title = title.replace(/_/g, '\\_');
