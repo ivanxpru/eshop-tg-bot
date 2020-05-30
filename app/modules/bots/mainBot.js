@@ -1,4 +1,5 @@
 require('dotenv').config();
+const delay = require('delay');
 const path = require('path');
 const Telegraf = require('telegraf');
 const Stage = require('telegraf/stage');
@@ -107,6 +108,12 @@ bot.use(session());
 bot.use(i18n.middleware());
 bot.use(stage.middleware());
 bot.use(Composer.acl(adminIds, adminBot));
+// Простая защита от ддоса
+bot.use(async (_ctx, next) => {
+  await delay(1000);
+  return next();
+});
+
 // Обычные пользователи
 bot.use(regularBot);
 
