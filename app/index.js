@@ -9,8 +9,6 @@ bot.launch().catch((err) => {
   logger.log('error', err);
 });
 
-getAllGames(false); // true - искать со скидками, false - все игры
-
 setInterval(() => {
   // Поиск скидок раз  в сутки
   redis_client.get('getAllGames', async (_err, reply) => {
