@@ -29,7 +29,7 @@ const getAllgames = async (discount_b) => {
     if (post) {
       await doPost(post, discount_b)
         .then(async () => {
-          await delay(20000);
+          await delay(1000 * 60 * 1);
         })
         .catch(() => {
           logger.log(
