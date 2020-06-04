@@ -21,7 +21,7 @@ const physical_platfrorms = [
 const getPost = (data, discount_b) =>
   new Promise((resolve, reject) => {
     redis_client.get(data.nsuid_txt[0], async (_err, reply) => {
-      if (!reply || reply - Date.now() <= 0) {
+      if (!reply || reply - Date.now() < 0) {
         const post = {};
         let prices;
         let physical_version = false;
