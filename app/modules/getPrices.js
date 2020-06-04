@@ -5,7 +5,8 @@ const regions = require('../data/regions.json');
 const url_cbr = 'https://www.cbr-xml-daily.ru/daily_json.js';
 let cbr;
 
-getData(url_cbr)
+getData
+  .json(url_cbr)
   .then((res) => {
     cbr = res;
   })
@@ -13,9 +14,10 @@ getData(url_cbr)
     console.error(err);
   });
 
-setInterval(() => {
+setInterval(async () => {
   // Получаем курсы валют раз в сутки
-  getData(url_cbr)
+  await getData
+    .json(url_cbr)
     .then((res) => {
       cbr = res;
     })
@@ -30,7 +32,8 @@ const getPricesRU = (nsuid, discount_b) =>
     const response = {};
     response.prices_ru = '';
     (async () => {
-      await getData(url_ru)
+      await getData
+        .json(url_ru)
         .then((res) => {
           if (res.prices && res.prices[0].regular_price) {
             if (discount_b && res.prices[0].discount_price) {
@@ -41,9 +44,10 @@ const getPricesRU = (nsuid, discount_b) =>
               const month = `0${discount_end_date.getMonth() + 1}`.slice(-2);
               const year = discount_end_date.getFullYear(discount_end_date);
               const price_discount_percentage_f =
+                100 -
                 (res.prices[0].discount_price.raw_value /
                   res.prices[0].regular_price.raw_value) *
-                100;
+                  100;
               response.discount = `Скидка: -${Math.round(
                 price_discount_percentage_f,
               )}% [до: ${day}.${month}.${year}]`;
@@ -72,7 +76,8 @@ const getPricesEU = (nsuid, discount) =>
     (async () => {
       for await (const region of Object.keys(regions.EU)) {
         const url_eu = `https://api.ec.nintendo.com/v1/price?country=${region}&lang=en&ids=${nsuid}`;
-        await getData(url_eu)
+        await getData
+          .json(url_eu)
           .then((res) => {
             if (res.prices && res.prices[0].regular_price) {
               const currency_eu = cbr.Valute.EUR.Value / cbr.Valute.EUR.Nominal;
@@ -87,9 +92,10 @@ const getPricesEU = (nsuid, discount) =>
                 const month = `0${discount_end_date.getMonth() + 1}`.slice(-2);
                 const year = discount_end_date.getFullYear(discount_end_date);
                 const price_discount_percentage_f =
+                  100 -
                   (res.prices[0].discount_price.raw_value /
                     res.prices[0].regular_price.raw_value) *
-                  100;
+                    100;
                 response.discount = `Скидка: -${Math.round(
                   price_discount_percentage_f,
                 )}% [до: ${day}.${month}.${year}]`;
@@ -123,7 +129,8 @@ const getPricesNONEU = (nsuid, discount) =>
     (async () => {
       for await (const region of Object.keys(regions.NONEU)) {
         const url_noneu = `https://api.ec.nintendo.com/v1/price?country=${region}&lang=en&ids=${nsuid}`;
-        await getData(url_noneu)
+        await getData
+          .json(url_noneu)
           .then((res) => {
             if (res.prices && res.prices[0].regular_price) {
               const { currency } = regions.NONEU[region];
@@ -140,9 +147,10 @@ const getPricesNONEU = (nsuid, discount) =>
                 const month = `0${discount_end_date.getMonth() + 1}`.slice(-2);
                 const year = discount_end_date.getFullYear(discount_end_date);
                 const price_discount_percentage_f =
+                  100 -
                   (res.prices[0].discount_price.raw_value /
                     res.prices[0].regular_price.raw_value) *
-                  100;
+                    100;
                 response.discount = `Скидка: -${Math.round(
                   price_discount_percentage_f,
                 )}% [до: ${day}.${month}.${year}]`;
