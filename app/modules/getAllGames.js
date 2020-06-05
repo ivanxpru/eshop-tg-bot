@@ -12,7 +12,7 @@ const redis_client = redis.createClient();
 const getAllgames = async (discount_b) => {
   redis_client.set('getAllGames', 'true');
   const url =
-    'https://searching.nintendo-europe.com/ru/select?q=*&fq=type%3AGAME,DLC%20AND%20*%3A*&sort=date_from%20desc&start=0&rows=9999&wt=json';
+    'https://searching.nintendo-europe.com/ru/select?q=*&rows=9999&start=0&fq=type:GAME,DLC&sort=date_from%20asc&wt=json';
   let games = await getData.json(url);
   games = games.response.docs;
   games = games.filter((docs) => docs.nsuid_txt);
@@ -29,7 +29,7 @@ const getAllgames = async (discount_b) => {
     if (post) {
       await doPost(post, discount_b)
         .then(async () => {
-          await delay(1000 * 10);
+          await delay(1000 * 60 * 5);
         })
         .catch(() => {
           logger.log(
