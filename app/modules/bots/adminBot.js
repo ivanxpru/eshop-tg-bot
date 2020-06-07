@@ -34,6 +34,16 @@ adminBot.command('users', async (ctx) => {
   await ctx.replyWithMarkdown(message);
 });
 */
+// Исключаем выполенение команд в чатах
+adminBot.command(async (ctx, next) => {
+  if (ctx.message.chat.type !== 'private') {
+    await ctx.telegram
+      .deleteMessage(ctx.chat.id, ctx.message.message_id)
+      .catch(() => {});
+  } else {
+    return next();
+  }
+});
 
 // Верификация пользователя
 adminBot.command('verify', async (ctx) => {
