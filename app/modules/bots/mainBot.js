@@ -8,6 +8,7 @@ const TelegrafI18n = require('telegraf-i18n');
 const SocksAgent = require('socks5-https-client/lib/Agent');
 const session = require('telegraf/session');
 const RedisSession = require('telegraf-session-redis');
+const logger = require('../logger');
 const adminBot = require('./adminBot');
 const regularBot = require('./regularBot');
 const getData = require('../getData');
@@ -129,7 +130,9 @@ bot.command('ping', async (ctx) => {
 bot.on('callback_query', async (ctx, next) => {
   if (!ctx.session.__scenes.current) {
     // удаляет сообщения вне сцен
-    await ctx.answerCbQuery(ctx.i18n.t('Данные удалены')).catch(() => {});
+    await ctx
+      .answerCbQuery(ctx.i18n.t('Сообщение устарело'), true)
+      .catch(() => {});
     await ctx.telegram
       .deleteMessage(ctx.chat.id, ctx.update.callback_query.message.message_id)
       .catch(() => {});
@@ -163,16 +166,17 @@ bot.start(async (ctx, next) => {
       ctx.scene.enter('family_scene');
       break;
     case 'sell':
-      await getData(
-        `https://eshopdb.ivanxpru.repl.co/api/v1.0/games/full/?query=${
-          ctx.startPayload.split('_')[1]
-        }&field=nsuid`,
-      )
+      await getData
+        .json(
+          `https://eshopdb.ivanxpru.repl.co/api/v1.0/games/full/?query=${
+            ctx.startPayload.split('_')[1]
+          }&field=nsuid`,
+        )
         .then((res) => {
           ctx.state.game = res.games[0];
         })
         .catch((err) => {
-          console.log(err);
+          logger.log('error', err);
         });
       if (ctx.state.user.verify) {
         next();
@@ -183,16 +187,17 @@ bot.start(async (ctx, next) => {
       }
       break;
     case 'buy':
-      await getData(
-        `https://eshopdb.ivanxpru.repl.co/api/v1.0/games/full/?query=${
-          ctx.startPayload.split('_')[1]
-        }&field=nsuid`,
-      )
+      await getData
+        .json(
+          `https://eshopdb.ivanxpru.repl.co/api/v1.0/games/full/?query=${
+            ctx.startPayload.split('_')[1]
+          }&field=nsuid`,
+        )
         .then((res) => {
           ctx.state.game = res.games[0];
         })
         .catch((err) => {
-          console.error(err);
+          logger.log('error', err);
         });
       if (ctx.state.user.verify) {
         next();
