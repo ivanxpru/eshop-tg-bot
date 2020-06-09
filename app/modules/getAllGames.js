@@ -7,6 +7,8 @@ const getGame = require('./getGame');
 const doPost = require('./doPost');
 const logger = require('./logger');
 
+const channel = process.env.CHANNEL_PRICES;
+
 const redis_client = redis.createClient();
 const redis_client_set = promisify(redis_client.set).bind(redis_client);
 const redis_client_get = promisify(redis_client.get).bind(redis_client);
@@ -39,7 +41,7 @@ const getAllgames = async (discount_b) => {
       })
       .catch(() => {});
     if (post) {
-      await doPost(post, discount_b)
+      await doPost(post, channel)
         .then(async () => {
           if (discount_b) {
             await redis_client_set(post.nsuid[0], post.discount_end_date);

@@ -2,9 +2,7 @@ require('dotenv').config();
 
 const bot = require('./bots/mainBot');
 
-const channel = process.env.CHANNEL;
-
-const doPost = (post) =>
+const doPost = (post, channel) =>
   new Promise((resolve, reject) => {
     const options = {
       caption: post.message,
