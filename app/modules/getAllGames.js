@@ -26,7 +26,7 @@ const getAllgames = async (discount_b) => {
   const games = [];
   for await (const doc of data) {
     if (doc.nsuid_txt[0]) {
-      await redis_client_get(doc.nsuid_txt[0]).then((reply) => {
+      await redis_client_get(doc.fs_id).then((reply) => {
         if (!reply || (discount_b && reply - Date.now() <= 0)) {
           games.push(doc);
         }
@@ -44,21 +44,14 @@ const getAllgames = async (discount_b) => {
       await doPost(post, channel)
         .then(async () => {
           if (discount_b) {
-            await redis_client_set(post.nsuid[0], post.discount_end_date);
+            await redis_client_set(game.fs_id, post.discount_end_date);
           } else {
-            await redis_client_set(post.nsuid[0], 0);
+            await redis_client_set(game.fs_id, 0);
           }
           await delay(1000 * 60 * 5);
         })
-        .catch(() => {
-          logger.log(
-            'error',
-            '\x1b[31m',
-            'doPost',
-            game.title,
-            game.nsuid_txt[0],
-            '\x1b[0m',
-          );
+        .catch((err) => {
+          logger.log('error', err);
         });
     }
   }
