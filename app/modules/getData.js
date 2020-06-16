@@ -1,4 +1,11 @@
+require('dotenv').config();
 const https = require('https');
+const algoliasearch = require('algoliasearch');
+
+const algoliasearch__client = algoliasearch(
+  process.env.ALGOLIASEARCH_ID,
+  process.env.ALGOLIASEARCH_KEY,
+);
 
 exports.json = (url) =>
   new Promise((resolve, reject) => {
@@ -49,4 +56,19 @@ exports.jsonp = (url, cb) =>
       .on('error', (_e) => {
         reject();
       });
+  });
+
+exports.algoliasearch = (index, query, param) =>
+  new Promise((resolve, reject) => {
+    const algoliasearch__index = algoliasearch__client.initIndex(index);
+    (async () => {
+      await algoliasearch__index
+        .search(query, param)
+        .then(({ hits }) => {
+          return resolve(hits);
+        })
+        .catch((err) => {
+          return reject(err);
+        });
+    })();
   });
