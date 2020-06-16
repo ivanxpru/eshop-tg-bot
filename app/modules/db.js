@@ -7,6 +7,9 @@ const state = {
 let dbClient;
 
 exports.connect = (dbURL, dbName, done) => {
+  if (state.db) {
+    console.log(state);
+  }
   if (state.db) return done();
   const mongoClient = new MongoClient(dbURL, {
     useNewUrlParser: true,
@@ -15,7 +18,6 @@ exports.connect = (dbURL, dbName, done) => {
   mongoClient.connect((err, db) => {
     if (err) return done(err);
     dbClient = db;
-    console.log('mongoClient.connect is OK');
     state.db = db.db(dbName);
     done();
   });
@@ -25,4 +27,5 @@ exports.get = () => state.db;
 
 exports.close = () => {
   dbClient.close();
+  state.db = null;
 };
