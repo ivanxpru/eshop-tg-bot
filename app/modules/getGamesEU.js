@@ -22,7 +22,7 @@ if (process.env.SOCKS_HOST && process.env.SOCKS_PORT) {
   telegram = new Telegram(process.env.BOT_TOKEN, {});
 }
 
-const channel = process.env.CHANNEL_DEBUG;
+const channel = process.env.CHANNEL_PRICES_EU;
 const url_games_eu = process.env.URL_GAMES_EU;
 const games_eu = process.env.GAMES_EU;
 
