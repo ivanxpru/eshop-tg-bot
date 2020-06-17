@@ -1,26 +1,12 @@
 require('dotenv').config();
-const SocksAgent = require('socks5-https-client/lib/Agent');
-const Telegram = require('telegraf/telegram');
 const { promisify } = require('util');
 const delay = require('delay');
 const redis = require('redis');
+const bot = require('./bots/mainBot');
 const getData = require('./getData');
 const getDB = require('./getDB');
 const getGameEU = require('./getGameEU');
 const logger = require('./logger');
-
-let telegram;
-if (process.env.SOCKS_HOST && process.env.SOCKS_PORT) {
-  const socksAgent = new SocksAgent({
-    socksHost: process.env.SOCKS_HOST,
-    socksPort: process.env.SOCKS_PORT,
-  });
-  telegram = new Telegram(process.env.BOT_TOKEN, {
-    agent: socksAgent,
-  });
-} else {
-  telegram = new Telegram(process.env.BOT_TOKEN, {});
-}
 
 const channel = process.env.CHANNEL_PRICES_EU;
 const url_games_eu = process.env.URL_GAMES_EU;
@@ -71,7 +57,7 @@ const getGamesEU = async (discount_b) => {
       await getDB
         .findEU(result.game.fs_id, games_eu)
         .then(async (res) => {
-          await telegram
+          await bot.telegram
             .sendPhoto(channel, res.file_id, options)
             .then(async (res_sendPhoto) => {
               console.log(res.file_id);
@@ -93,7 +79,7 @@ const getGamesEU = async (discount_b) => {
             });
         })
         .catch(async () => {
-          await telegram
+          await bot.telegram
             .sendPhoto(channel, result.post.image, options)
             .then(async (res_sendPhoto) => {
               result.game.file_id =
