@@ -59,11 +59,7 @@ const getGamesEU = async (discount_b) => {
         .then(async (res) => {
           await bot.telegram
             .sendPhoto(channel, res.file_id, options)
-            .then(async (res_sendPhoto) => {
-              console.log(res.file_id);
-              console.log(
-                res_sendPhoto.photo[res_sendPhoto.photo.length - 1].file_id,
-              );
+            .then(async () => {
               if (discount_b) {
                 await redis_client_set(
                   result.game.fs_id,
