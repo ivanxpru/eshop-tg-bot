@@ -1,4 +1,5 @@
 const delay = require('delay');
+const logger = require('./logger');
 const getData = require('./getData');
 const regions = require('../data/regions.json');
 
@@ -11,7 +12,7 @@ getData
     cbr = res;
   })
   .catch(async (err) => {
-    console.error(err);
+    logger.log('error', err);
   });
 
 setInterval(async () => {
@@ -22,7 +23,7 @@ setInterval(async () => {
       cbr = res;
     })
     .catch((err) => {
-      console.error(err);
+      logger.log('error', err);
     });
 }, 1000 * 60 * 60 * 24);
 
@@ -163,7 +164,7 @@ const getPricesNONEU = (nsuid, discount) =>
                 response.prices_noneu += `${regions.NONEU[region].flag} ${price_noneu_regular}₽\n`;
               }
             }
-          })
+          }) //
           .catch(() => {
             reject(new Error('getPricesNONEU'));
           });
@@ -177,7 +178,7 @@ const getPricesNONEU = (nsuid, discount) =>
     })();
   });
 
-const getPrices = (nsuid, discount_b) =>
+exports.EU = (nsuid, discount_b) =>
   new Promise((resolve, reject) => {
     if (!cbr) {
       return reject(new Error('no get cbr'));
@@ -243,9 +244,74 @@ const getPrices = (nsuid, discount_b) =>
         }
         resolve(response);
       } else {
-        return reject(new Error('getPrices'));
+        return reject(new Error('getPricesEU'));
       }
     })();
   });
 
-module.exports = getPrices;
+exports.USnsuid = (nsuid, discount_b) =>
+  new Promise((resolve, reject) => {
+    const url_us = `https://api.ec.nintendo.com/v1/price?country=US&lang=en&ids=${nsuid}`;
+    const response = {};
+    (async () => {
+      await getData
+        .json(url_us)
+        .then((res) => {
+          if (res.prices && res.prices[0].regular_price) {
+            const { currency } = regions.US.US;
+            const currency_us =
+              cbr.Valute[currency].Value / cbr.Valute[currency].Nominal;
+            const price_us_regular = Math.round(
+              currency_us * res.prices[0].regular_price.raw_value,
+            );
+            if (discount_b && res.prices[0].discount_price) {
+              const discount_end_date = new Date(
+                Date.parse(res.prices[0].discount_price.end_datetime),
+              );
+              const day = discount_end_date.getDate(discount_end_date);
+              const month = `0${discount_end_date.getMonth() + 1}`.slice(-2);
+              const year = discount_end_date.getFullYear(discount_end_date);
+              const price_discount_percentage_f =
+                100 -
+                (res.prices[0].discount_price.raw_value /
+                  res.prices[0].regular_price.raw_value) *
+                  100;
+              const discount = `Скидка: -${Math.round(
+                price_discount_percentage_f,
+              )}% [до: ${day}.${month}.${year}]`;
+              response.discount_end_date = discount_end_date;
+              const price_us_discount = Math.round(
+                currency_us * res.prices[0].discount_price.raw_value,
+              );
+              response.prices = `${regions.US.US.flag} ${price_us_regular}₽ → ${price_us_discount}₽`;
+              response.prices += `\n\`${discount}\``;
+            } else {
+              response.prices = `${regions.US.US.flag} ${price_us_regular}₽\n`;
+            }
+          }
+        }) //
+        .catch(() => {
+          reject(new Error('getPricesUSnsuid'));
+        });
+      if (response.prices) {
+        resolve(response);
+      } else {
+        reject(new Error('getPricesUSnsuid'));
+      }
+    })();
+  });
+
+exports.USmsrp = (msrb) =>
+  new Promise((resolve, reject) => {
+    const response = {};
+    const { currency } = regions.US.US;
+    const currency_us =
+      cbr.Valute[currency].Value / cbr.Valute[currency].Nominal;
+    const price_us_regular = Math.round(currency_us * msrb);
+    response.prices = `${regions.US.US.flag} ${price_us_regular}₽\n`;
+    if (response.prices) {
+      resolve(response);
+    } else {
+      reject(new Error('getPricesUSmsrb'));
+    }
+  });
