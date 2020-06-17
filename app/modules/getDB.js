@@ -5,28 +5,43 @@ const db = require('./db');
 const DB_URI = process.env.DB_URI;
 const DB_NAME = process.env.DB_NAME;
 
+exports.findEU = (fs_id, dbCollection) =>
+  new Promise((resolve, reject) => {
+    db.connect(DB_URI, DB_NAME, (err) => {
+      if (err) return reject(new Error(err));
+      const collection = db.get().collection(dbCollection);
+      collection.findOne({ fs_id }, (err_findOne, doc) => {
+        if (err) return reject(new Error(err_findOne));
+        if (doc === null) {
+          db.close();
+          return reject();
+        }
+        db.close();
+        return resolve(doc);
+      });
+    });
+  });
+
 exports.addEU = (data, dbCollection) =>
   new Promise((resolve, reject) => {
-    (async () => {
-      await db.connect(DB_URI, DB_NAME, async (err) => {
-        if (err) return reject(new Error(err));
-        const collection = db.get().collection(dbCollection);
-        collection.findOne({ fs_id: data.fs_id }, async (_err, doc) => {
-          if (doc === null) {
-            collection.insertOne(data, async (err_insertOne, _result) => {
-              if (err_insertOne) {
-                return reject(new Error(err_insertOne));
-              }
-              db.close();
-              return resolve();
-            });
-          } else {
+    db.connect(DB_URI, DB_NAME, async (err) => {
+      if (err) return reject(new Error(err));
+      const collection = db.get().collection(dbCollection);
+      collection.findOne({ fs_id: data.fs_id }, (_err, doc) => {
+        if (doc === null) {
+          collection.insertOne(data, async (err_insertOne, _result) => {
+            if (err_insertOne) {
+              return reject(new Error(err_insertOne));
+            }
             db.close();
-            return reject(new Error(doc));
-          }
-        });
+            return resolve();
+          });
+        } else {
+          db.close();
+          return reject(new Error(doc));
+        }
       });
-    })();
+    });
   });
 
 exports.addUS = (data, dbCollection) =>
