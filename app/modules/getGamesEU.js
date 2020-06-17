@@ -68,24 +68,52 @@ const getGamesEU = async (discount_b) => {
           inline_keyboard: result.post.keyboard,
         }),
       };
-      await telegram
-        .sendPhoto(channel, result.post.image, options)
-        .then(async () => {
-          if (discount_b) {
-            await redis_client_set(
-              result.game.fs_id,
-              result.post.discount_end_date,
-            );
-          } else {
-            await redis_client_set(result.game.fs_id, 0);
-          }
-          await getDB.addEU(result.game, games_eu).catch((err) => {
-            logger.log('error', err);
-          });
-          await delay(1000 * 60 * 2);
+      await getDB
+        .findEU(result.game.fs_id, games_eu)
+        .then(async (res) => {
+          await telegram
+            .sendPhoto(channel, res.file_id, options)
+            .then(async (res_sendPhoto) => {
+              console.log(res.file_id);
+              console.log(
+                res_sendPhoto.photo[res_sendPhoto.photo.length - 1].file_id,
+              );
+              if (discount_b) {
+                await redis_client_set(
+                  result.game.fs_id,
+                  result.post.discount_end_date,
+                );
+              } else {
+                await redis_client_set(result.game.fs_id, 0);
+              }
+              await delay(1000 * 60 * 2);
+            })
+            .catch((err) => {
+              logger.log('error', `sendPhoto: ${err}`);
+            });
         })
-        .catch((err) => {
-          logger.log('error', `sendPhoto: ${err}`);
+        .catch(async () => {
+          await telegram
+            .sendPhoto(channel, result.post.image, options)
+            .then(async (res_sendPhoto) => {
+              result.game.file_id =
+                res_sendPhoto.photo[res_sendPhoto.photo.length - 1].file_id;
+              if (discount_b) {
+                await redis_client_set(
+                  result.game.fs_id,
+                  result.post.discount_end_date,
+                );
+              } else {
+                await redis_client_set(result.game.fs_id, 0);
+              }
+              await getDB.addEU(result.game, games_eu).catch((err) => {
+                logger.log('error', err);
+              });
+              await delay(1000 * 60 * 2);
+            })
+            .catch((err) => {
+              logger.log('error', `sendPhoto: ${err}`);
+            });
         });
     }
   }
