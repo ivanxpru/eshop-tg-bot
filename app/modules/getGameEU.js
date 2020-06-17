@@ -100,7 +100,7 @@ const getData = (data) => {
   return game;
 };
 
-const getGame = (data, discount_b) =>
+const getGameEU = (data, discount_b) =>
   new Promise((resolve, _reject) => {
     (async () => {
       const response = [];
@@ -159,7 +159,7 @@ const getGame = (data, discount_b) =>
         buttons.push(button);
         keyboard.push(buttons);
       }
-      if ((game.cloud_saves && nx) || (game.internet && nx)) {
+      if ((game.cloud_saves && nx) || (game.subscription && nx)) {
         const buttons = [];
         const button = {};
         button.text = 'Nintendo Switch Online (350 р./год)';
@@ -184,4 +184,4 @@ const getGame = (data, discount_b) =>
     })();
   });
 
-module.exports = getGame;
+module.exports = getGameEU;
