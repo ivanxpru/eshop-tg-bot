@@ -5,7 +5,6 @@ const Telegraf = require('telegraf');
 const Stage = require('telegraf/stage');
 const Composer = require('telegraf/composer');
 const TelegrafI18n = require('telegraf-i18n');
-const SocksAgent = require('socks5-https-client/lib/Agent');
 const session = require('telegraf/session');
 const RedisSession = require('telegraf-session-redis');
 const logger = require('../logger');
@@ -14,21 +13,7 @@ const regularBot = require('./regularBot');
 const getData = require('../getData');
 const getUser = require('../getUser');
 
-let bot;
-
-if (process.env.SOCKS_HOST && process.env.SOCKS_PORT) {
-  const socksAgent = new SocksAgent({
-    socksHost: process.env.SOCKS_HOST,
-    socksPort: process.env.SOCKS_PORT,
-  });
-  bot = new Telegraf(process.env.BOT_TOKEN, {
-    telegram: {
-      agent: socksAgent,
-    },
-  });
-} else {
-  bot = new Telegraf(process.env.BOT_TOKEN);
-}
+const bot = new Telegraf(process.env.BOT_TOKEN);
 
 const i18n = new TelegrafI18n({
   directory: path.resolve(__dirname, '../../data/locales'),
@@ -165,15 +150,16 @@ bot.start(async (ctx, next) => {
     case 'family':
       ctx.scene.enter('family_scene');
       break;
-    case 'sell':
+    case 'sellEU':
       await getData
         .json(
           `https://eshopdb.ivanxpru.repl.co/api/v1.0/games/full/?query=${
             ctx.startPayload.split('_')[1]
-          }&field=nsuid`,
+          }&field=fs_id`,
         )
         .then((res) => {
           ctx.state.game = res.games[0];
+          ctx.state.game.title = res.games[0].title_eu;
         })
         .catch((err) => {
           logger.log('error', err);
@@ -186,15 +172,16 @@ bot.start(async (ctx, next) => {
         ctx.scene.enter('verify_scene');
       }
       break;
-    case 'buy':
+    case 'buyEU':
       await getData
         .json(
           `https://eshopdb.ivanxpru.repl.co/api/v1.0/games/full/?query=${
             ctx.startPayload.split('_')[1]
-          }&field=nsuid`,
+          }&field=fs_id`,
         )
         .then((res) => {
           ctx.state.game = res.games[0];
+          ctx.state.game.title = res.games[0].title_eu;
         })
         .catch((err) => {
           logger.log('error', err);
