@@ -7,9 +7,6 @@ const state = {
 let dbClient;
 
 exports.connect = (dbURL, dbName, done) => {
-  if (state.db) {
-    console.log(state);
-  }
   if (state.db) return done();
   const mongoClient = new MongoClient(dbURL, {
     useNewUrlParser: true,
