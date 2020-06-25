@@ -104,6 +104,21 @@
       "flag": "🇺🇸",
       "country": "США",
       "currency": "USD"
+    },
+    "CA": {
+      "flag": "🇨🇦",
+      "country": "Канада",
+      "currency": "CAD"
+    },
+    "MX": {
+      "flag": "🇲🇽",
+      "country": "Мексика",
+      "currency": "MXN"
+    },
+    "BR": {
+      "flag": "🇧🇷",
+      "country": "Бразилия",
+      "currency": "BRL"
     }
   } 
 }
