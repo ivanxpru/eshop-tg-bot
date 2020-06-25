@@ -24,11 +24,12 @@ exports.json = (url) =>
             }
           });
         } else {
-          reject(new Error(`getData ${url} ${res.statusCode}`));
+          const err_msg = `getData ${url} ${res.statusCode}`;
+          reject(err_msg);
         }
       })
-      .on('error', (_e) => {
-        reject();
+      .on('error', (e) => {
+        reject(e);
       });
   });
 
@@ -64,8 +65,8 @@ exports.algoliasearch = (index, query, param) =>
     (async () => {
       await algoliasearch__index
         .search(query, param)
-        .then(({ hits }) => {
-          return resolve(hits);
+        .then((res) => {
+          return resolve(res.hits);
         })
         .catch((err) => {
           return reject(err);
