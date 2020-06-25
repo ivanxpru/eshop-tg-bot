@@ -5,12 +5,42 @@ const db = require('./db');
 const DB_URI = process.env.DB_URI;
 const DB_NAME = process.env.DB_NAME;
 
-exports.findEU = (fs_id, dbCollection) =>
+exports.findEU = (fs_ids, dbCollection) =>
+  new Promise((resolve, reject) => {
+    db.connect(DB_URI, DB_NAME, (err_connect) => {
+      if (err_connect) return reject(err_connect);
+      const collection = db.get().collection(dbCollection);
+      if (fs_ids.length) {
+        const query = `{ fs_id: {$in: ${fs_ids}}`;
+        collection.find(query).toArray((err_find, docs) => {
+          if (err_find) return reject(err_find);
+          if (docs === null) {
+            db.close();
+            return reject();
+          }
+          db.close();
+          return resolve(docs);
+        });
+      } else {
+        collection.findOne({ fs_id: fs_ids }, (err_findOne, doc) => {
+          if (err_findOne) return reject(err_findOne);
+          if (doc === null) {
+            db.close();
+            return reject();
+          }
+          db.close();
+          return resolve(doc);
+        });
+      }
+    });
+  });
+
+exports.findUS = (objectID, dbCollection) =>
   new Promise((resolve, reject) => {
     db.connect(DB_URI, DB_NAME, (err) => {
       if (err) return reject(new Error(err));
       const collection = db.get().collection(dbCollection);
-      collection.findOne({ fs_id }, (err_findOne, doc) => {
+      collection.findOne({ objectID }, (err_findOne, doc) => {
         if (err) return reject(new Error(err_findOne));
         if (doc === null) {
           db.close();
@@ -72,6 +102,24 @@ exports.addUS = (data, dbCollection) =>
             }
           },
         );
+      });
+    })();
+  });
+
+exports.updateEU = (fs_id, update, dbCollection) =>
+  new Promise((resolve, reject) => {
+    (async () => {
+      await db.connect(DB_URI, DB_NAME, async (err_connect) => {
+        if (err_connect) return reject(err_connect);
+        const collection = db.get().collection(dbCollection);
+        await collection
+          .updateOne({ fs_id }, { $set: update })
+          .then(() => {
+            resolve();
+          })
+          .catch((err_update) => {
+            reject(err_update);
+          });
       });
     })();
   });
