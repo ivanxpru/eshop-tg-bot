@@ -6,7 +6,6 @@ const getData = require('./getData');
 const getDB = require('./getDB');
 const getGameEU = require('./getGameEU');
 const logger = require('./logger');
-// const { get } = require('http');
 
 const channel = process.env.CHANNEL_PRICES_EU;
 const url_games_eu = process.env.URL_GAMES_EU;
@@ -33,7 +32,13 @@ const getGamesEU = async (discount_b) => {
     }
     for await (const doc of data) {
       if (!doc.date_from) {
-        data.push(data.shift());
+        const index = data
+          .map((item) => {
+            return item.fs_id;
+          })
+          .indexOf(doc.fs_id);
+        data.push(data[index]);
+        data.splice(index, 1);
       }
     }
     const fs_ids = [];
@@ -49,18 +54,20 @@ const getGamesEU = async (discount_b) => {
       .catch((err) => {
         logger.log('error', err);
       });
-    for await (const doc of docs) {
-      const index = data
-        .map((item) => {
-          return Number.parseInt(item.fs_id, 10);
-        })
-        .indexOf(doc.fs_id);
-      if (
-        index >= 0 &&
-        discount_b &&
-        Date.parse(doc.discount_end_date) - Date.now() > 0
-      ) {
-        data.splice(index, 1);
+    if (docs) {
+      for await (const doc of docs) {
+        const index = data
+          .map((item) => {
+            return Number.parseInt(item.fs_id, 10);
+          })
+          .indexOf(doc.fs_id);
+        if (
+          index >= 0 &&
+          discount_b &&
+          Date.parse(doc.discount_end_date_eu) - Date.now() > 0
+        ) {
+          data.splice(index, 1);
+        }
       }
     }
     for await (const game of data) {
@@ -90,14 +97,14 @@ const getGamesEU = async (discount_b) => {
                   await getDB.updateEU(
                     result.game.fs_id,
                     {
-                      discount_end_date: result.game.discount_end_date,
+                      discount_end_date_eu: result.game.discount_end_date_eu,
                     },
                     games_eu,
                   );
                 } else {
                   await getDB.updateEU(
                     result.game.fs_id,
-                    { discount_end_date: Date.now() },
+                    { discount_end_date_eu: Date.now() },
                     games_eu,
                   );
                 }
