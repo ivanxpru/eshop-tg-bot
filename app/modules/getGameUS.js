@@ -39,7 +39,9 @@ const getData = (data) => {
       game.physical_version = true;
     }
   }
-  game.publisher_us = data.publishers[0];
+  if (data.publishers) {
+    game.publisher_us = data.publishers[0];
+  }
   game.date_release_us = new Date(Date.parse(data.releaseDateMask));
   game.description_us = data.description;
   game.url_us = data.url;
@@ -152,7 +154,9 @@ const getGameUS = (data, discount_b) =>
         post.keyboard = keyboard;
       }
       if (discount_b && prices.discount_end_date) {
-        post.discount_end_date = prices.discount_end_date;
+        response.game.discount_end_date_us = prices.discount_end_date;
+      } else {
+        response.game.discount_end_date_us = new Date(Date.now());
       }
       response.post = post;
       return resolve(response);
