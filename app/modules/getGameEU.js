@@ -177,9 +177,9 @@ const getGameEU = (data, discount_b) =>
         post.keyboard = keyboard;
       }
       if (discount_b && prices.discount_end_date) {
-        response.game.discount_end_date = prices.discount_end_date;
+        response.game.discount_end_date_eu = prices.discount_end_date;
       } else {
-        response.game.discount_end_date = new Date(Date.now());
+        response.game.discount_end_date_eu = new Date(Date.now());
       }
       response.post = post;
       return resolve(response);
