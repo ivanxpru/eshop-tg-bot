@@ -10,7 +10,7 @@ exports.findEU = (fs_ids, dbCollection) =>
     db.connect(DB_URI, DB_NAME, (err_connect) => {
       if (err_connect) return reject(err_connect);
       const collection = db.get().collection(dbCollection);
-      if (fs_ids.length) {
+      if (Array.isArray(fs_ids)) {
         const query = `{ fs_id: {$in: ${fs_ids}}`;
         collection.find(query).toArray((err_find, docs) => {
           if (err_find) return reject(err_find);
@@ -35,20 +35,33 @@ exports.findEU = (fs_ids, dbCollection) =>
     });
   });
 
-exports.findUS = (objectID, dbCollection) =>
+exports.findUS = (objectIDs, dbCollection) =>
   new Promise((resolve, reject) => {
     db.connect(DB_URI, DB_NAME, (err) => {
       if (err) return reject(new Error(err));
       const collection = db.get().collection(dbCollection);
-      collection.findOne({ objectID }, (err_findOne, doc) => {
-        if (err) return reject(new Error(err_findOne));
-        if (doc === null) {
+      if (Array.isArray(objectIDs)) {
+        const query = `{ objectID: {$in: ${objectIDs}}`;
+        collection.find(query).toArray((err_find, docs) => {
+          if (err_find) return reject(err_find);
+          if (docs === null) {
+            db.close();
+            return reject();
+          }
           db.close();
-          return reject();
-        }
-        db.close();
-        return resolve(doc);
-      });
+          return resolve(docs);
+        });
+      } else {
+        collection.findOne({ objectID: objectIDs }, (err_findOne, doc) => {
+          if (err) return reject(new Error(err_findOne));
+          if (doc === null) {
+            db.close();
+            return reject();
+          }
+          db.close();
+          return resolve(doc);
+        });
+      }
     });
   });
 
@@ -114,6 +127,24 @@ exports.updateEU = (fs_id, update, dbCollection) =>
         const collection = db.get().collection(dbCollection);
         await collection
           .updateOne({ fs_id }, { $set: update })
+          .then(() => {
+            resolve();
+          })
+          .catch((err_update) => {
+            reject(err_update);
+          });
+      });
+    })();
+  });
+
+exports.updateUS = (objectID, update, dbCollection) =>
+  new Promise((resolve, reject) => {
+    (async () => {
+      await db.connect(DB_URI, DB_NAME, async (err_connect) => {
+        if (err_connect) return reject(err_connect);
+        const collection = db.get().collection(dbCollection);
+        await collection
+          .updateOne({ objectID }, { $set: update })
           .then(() => {
             resolve();
           })
