@@ -3,6 +3,7 @@ const delay = require('delay');
 const redis = require('redis');
 const bot = require('./bots/mainBot');
 const getData = require('./getData');
+const sortData = require('./sortData');
 const getDB = require('./getDB');
 const getGameUS = require('./getGameUS');
 const logger = require('./logger');
@@ -41,20 +42,6 @@ const params = [
     attributesToRetrieve: ['*'],
   },
 ];
-
-const sortData = (data, key) => {
-  const sortItems = (a, b) => {
-    if (a[key] < b[key]) {
-      return -1;
-    }
-    if (b[key] < a[key]) {
-      return 1;
-    }
-    return 0;
-  };
-  const result = data.sort(sortItems);
-  return result;
-};
 
 const getGamesUS = async (discount_b) => {
   redis_client.set('getAllGames', 'true');
