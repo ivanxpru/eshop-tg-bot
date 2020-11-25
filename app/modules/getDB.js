@@ -11,7 +11,7 @@ exports.findEU = (fs_ids, dbCollection) =>
       if (err_connect) return reject(err_connect);
       const collection = db.get().collection(dbCollection);
       if (Array.isArray(fs_ids)) {
-        const query = `{ fs_id: {$in: ${fs_ids}}`;
+        const query = `{ fs_id: {$in: ${fs_ids} }`;
         collection.find(query).toArray((err_find, docs) => {
           if (err_find) return reject(err_find);
           if (docs === null) {
@@ -54,6 +54,36 @@ exports.findUS = (objectIDs, dbCollection) =>
       } else {
         collection.findOne({ objectID: objectIDs }, (err_findOne, doc) => {
           if (err) return reject(new Error(err_findOne));
+          if (doc === null) {
+            db.close();
+            return reject();
+          }
+          db.close();
+          return resolve(doc);
+        });
+      }
+    });
+  });
+
+exports.findAmiiboEU = (fs_ids, dbCollection) =>
+  new Promise((resolve, reject) => {
+    db.connect(DB_URI, DB_NAME, (err_connect) => {
+      if (err_connect) return reject(err_connect);
+      const collection = db.get().collection(dbCollection);
+      if (Array.isArray(fs_ids)) {
+        const query = `{ fs_id: {$in: ${fs_ids}} }`;
+        collection.find(query).toArray((err_find, docs) => {
+          if (err_find) return reject(err_find);
+          if (docs === null) {
+            db.close();
+            return reject;
+          }
+          db.close();
+          return resolve(docs);
+        });
+      } else {
+        collection.findOne({ fs_id: fs_ids }, (err_findOne, doc) => {
+          if (err_findOne) return reject(err_findOne);
           if (doc === null) {
             db.close();
             return reject();
@@ -117,6 +147,28 @@ exports.addUS = (data, dbCollection) =>
         );
       });
     })();
+  });
+
+exports.addAmiiboEU = (data, dbCollection) =>
+  new Promise((resolve, reject) => {
+    db.connect(DB_URI, DB_NAME, async (err) => {
+      if (err) return reject(new Error(err));
+      const collection = db.get().collection(dbCollection);
+      collection.findOne({ fs_id: data.fs_id }, (_err, doc) => {
+        if (doc === null) {
+          collection.insertOne(data, async (err_insertOne, _result) => {
+            if (err_insertOne) {
+              return reject(new Error(err_insertOne));
+            }
+            db.close();
+            return resolve();
+          });
+        } else {
+          db.close();
+          return reject(new Error(doc));
+        }
+      });
+    });
   });
 
 exports.updateEU = (fs_id, update, dbCollection) =>

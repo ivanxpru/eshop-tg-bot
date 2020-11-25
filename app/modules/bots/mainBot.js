@@ -48,6 +48,7 @@ bot.use(async (_ctx, next) => {
 // Обычные пользователи
 bot.use(regularBot);
 
+// Тестирование бота
 bot.command('ping', async (ctx) => {
   await ctx.deleteMessage(ctx.message.message_id);
   await ctx.reply('pong');

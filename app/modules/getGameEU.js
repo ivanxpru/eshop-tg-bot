@@ -1,8 +1,6 @@
 const getPrices = require('./getPrices');
 const logger = require('./logger');
 
-const botname = process.env.BOT_USERNAME;
-
 const system_types = [
   'nes_cartridge',
   'snes_cartridge',
@@ -64,7 +62,9 @@ const getData = (data) => {
     }
   }
   game.publisher_eu = data.publisher;
-  game.date_release_eu = new Date(Date.parse(data.date_from));
+  if (data.date_from) {
+    game.date_release_eu = new Date(Date.parse(data.date_from));
+  }
   game.description_eu = data.excerpt;
   game.url_eu = data.url;
   game.languages = [];
@@ -108,16 +108,12 @@ const getGameEU = (data, discount_b) =>
       response.game = game;
       const post = {};
       let prices;
-      let nx = false;
       let system = '';
       let hashtags = '';
       let image = game.boxart_eu;
       image = image.replace(/_/g, '_');
       const keyboard = [];
       for (const platform of game.system_name) {
-        if (platform === 'Nintendo Switch') {
-          nx = true;
-        }
         system += `#${platform.replace(/ /g, '_')} `;
       }
       system = system.replace(/_/g, '\\_');
@@ -147,6 +143,7 @@ const getGameEU = (data, discount_b) =>
       if (!prices) {
         prices = false;
       }
+      /*
       if (game.physical_version) {
         const buttons = [];
         let button = {};
@@ -159,6 +156,17 @@ const getGameEU = (data, discount_b) =>
         buttons.push(button);
         keyboard.push(buttons);
       }
+      */
+      /*
+      const buttons = [];
+      let button;
+      button = Markup.callbackButton('👍', 'like');
+      buttons.push(button);
+      button = Markup.callbackButton('👎', 'unlike');
+      buttons.push(button);
+      keyboard.push(buttons);
+      */
+      /*
       if ((game.cloud_saves && nx) || (game.subscription && nx)) {
         const buttons = [];
         const button = {};
@@ -167,6 +175,7 @@ const getGameEU = (data, discount_b) =>
         buttons.push(button);
         keyboard.push(buttons);
       }
+      */
       if (prices) {
         post.message = `${title}\n\n${description}\n${hashtags}\n\n${prices.prices}`;
       } else {

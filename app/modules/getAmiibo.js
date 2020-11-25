@@ -1,32 +1,29 @@
-const { promisify } = require('util');
-const redis = require('redis');
 const delay = require('delay');
+const bot = require('./bots/mainBot');
 const getData = require('./getData');
+const getDB = require('./getDB');
 const logger = require('./logger');
-const doPost = require('./doPost');
 
-const botname = process.env.BOT_USERNAME;
 const channel = process.env.CHANNEL_AMIIBO;
+const amiibo_eu = process.env.AMIIBO_EU;
 
-const redis_client = redis.createClient();
-const redis_client_set = promisify(redis_client.set).bind(redis_client);
-const redis_client_get = promisify(redis_client.get).bind(redis_client);
-const redis_client_del = promisify(redis_client.del).bind(redis_client);
-
-const getAmiibo = (figure) =>
+const getAmiibo = (data) =>
   new Promise((resolve, _reject) => {
     const post = {};
-    post.image = `https:${figure.figure_image_url_s}`;
-    const title = `[${figure.title}](https://nintendo.ru${figure.url})`;
-    let collection = `#${figure.figure_collection_value_t}`;
+    post.image = `https:${data.figure_image_url_s}`;
+    const title = `[${data.title}](https://nintendo.ru${data.url})`;
+    const pretty_date = `Дата выпуска: \`${data.pretty_date_s}\``;
+    let collection = `#${data.figure_collection_value_t}`;
     collection = collection.replace(/_/g, '\\_');
-    const description = figure.excerpt;
+    const description = data.excerpt;
     let hachtags = '';
-    figure.game_series_txt.forEach((tag) => {
+    data.game_series_txt.forEach((tag) => {
       hachtags += `#${tag} `;
     });
     hachtags = hachtags.replace(/_/g, '\\_');
-    post.message = `${title}\n${collection}\n\n${description}\n${hachtags}`;
+    post.message = `${title}\n${collection}\n${pretty_date}\n\n${description}\n${hachtags}`;
+    post.figure = data;
+    /*
     const keyboard = [];
     const buttons = [];
     let button = {};
@@ -39,13 +36,13 @@ const getAmiibo = (figure) =>
     buttons.push(button);
     keyboard.push(buttons);
     post.keyboard = keyboard;
+    */
     resolve(post);
   });
 
 exports.getAllAmiibo = async () => {
-  await redis_client_set('getAllAmiibo', 'true');
   const url =
-    'https://searching.nintendo-europe.com/ru/select?q=*&rows=9999&start=0&fq=type:FIGURE&sort=date_from asc&wt=json';
+    'https://searching.nintendo-europe.com/ru/select?q=*&rows=9999&start=0&fq=type:FIGURE&sort=date_from asc, figure_number_s  asc&wt=json';
   let data;
   await getData
     .json(url)
@@ -55,38 +52,72 @@ exports.getAllAmiibo = async () => {
     .catch(() => {
       return logger.log('error', 'no getAllAmiibo');
     });
-  data = data.response.docs;
-  const figures = [];
-  for await (const doc of data) {
-    if (doc.fs_id) {
-      await redis_client_get(doc.fs_id).then((reply) => {
-        if (!reply) {
-          figures.push(doc);
-        }
-      });
+  if (data) {
+    data = data.response.docs;
+    data.sort((a, b) => (a.date_from < b.date_from || !b.date_from ? -1 : 1));
+    const fs_ids = [];
+
+    for await (const doc of data) {
+      if (doc.fs_id) {
+        fs_ids.push(Number.parseInt(doc.fs_id, 10));
+      }
     }
-  }
-  for await (const figure of figures) {
-    let post;
-    await getAmiibo(figure)
+
+    let docs;
+
+    await getDB
+      .findAmiiboEU(fs_ids, amiibo_eu)
       .then((res) => {
-        post = res;
+        docs = res;
       })
-      .catch(() => {
-        logger.log('error', 'no get Amiibo');
+      .catch((err) => {
+        logger.log('error', err);
       });
-    if (post) {
-      await doPost(post, channel)
-        .then(async () => {
-          await redis_client_set(figure.fs_id, 0);
-          await delay(1000 * 60 * 5);
+
+    for await (const doc of docs) {
+      const index = data
+        .map((item) => {
+          return Number.parseInt(item.fs_id, 10);
         })
-        .catch((err) => {
-          console.log(err);
+        .indexOf(doc.fs_id);
+      if (index >= 0) {
+        data.splice(index, 1);
+      }
+    }
+    for await (const figure of data) {
+      let result;
+      await getAmiibo(figure)
+        .then((res) => {
+          result = res;
+        })
+        .catch(() => {
+          logger.log('error', 'no get Amiibo');
         });
+      if (result) {
+        const options = {
+          caption: result.message,
+          parse_mode: 'Markdown',
+        };
+        await bot.telegram
+          .sendPhoto(channel, result.image, options)
+          .then(async (res_sendPhoto) => {
+            result.figure.fs_id = Number.parseInt(result.figure.fs_id, 10);
+            result.figure.description = result.figure.excerpt;
+            delete result.figure.excerpt;
+            if (result.figure.date_from) {
+              result.figure.date_release_eu = new Date(
+                Date.parse(result.figure.date_from),
+              );
+              delete result.figure.date_from;
+            }
+            result.figure.file_id =
+              res_sendPhoto.photo[res_sendPhoto.photo.length - 1].file_id;
+            await getDB.addAmiiboEU(result.figure, amiibo_eu);
+          });
+        await delay(Number.parseInt(process.env.DELAY_POST, 10) * 60 * 1000);
+      }
     }
   }
-  await redis_client_del('getAllAmiibo');
 };
 
 exports.getByGameId = (fs_id) =>

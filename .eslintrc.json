@@ -1,38 +1,34 @@
 {
-    "env": {
-        "commonjs": true,
-        "es6": true,
-        "node": true
-    },
-    "extends": [
-        "airbnb-base",
-        "prettier"
-    ],
-    "plugins": [
-        "prettier"
-    ],
-    "globals": {
-        "Atomics": "readonly",
-        "SharedArrayBuffer": "readonly"
-    },
-    "parserOptions": {
-        "ecmaVersion": 11
-    },
-    "rules": {
-        "prettier/prettier": "error",
-        "camelcase": "off",
-        "max-len":"off",
-        "no-restricted-syntax": "off",
-        "no-loop-func": "off",
-        "no-useless-escape": "off",
-        "prefer-destructuring": "off",
-        "no-underscore-dangle": "off",
-        "consistent-return": "off",
-        "no-unused-vars": [
-            "error", 
-            { 
-                "argsIgnorePattern": "^_" 
-                }
-            ]
-    }
+  "env": {
+    "commonjs": true,
+    "es6": true,
+    "node": true
+  },
+  "extends": ["airbnb-base", "prettier"],
+  "plugins": ["prettier"],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "parserOptions": {
+    "ecmaVersion": 11
+  },
+  "rules": {
+    "prettier/prettier": "error",
+    "camelcase": "off",
+    "max-len": "off",
+    "no-restricted-syntax": "off",
+    "no-loop-func": "off",
+    "no-await-in-loop": "off",
+    "no-useless-escape": "off",
+    "prefer-destructuring": "off",
+    "no-underscore-dangle": "off",
+    "consistent-return": "off",
+    "no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_"
+      }
+    ]
+  }
 }
