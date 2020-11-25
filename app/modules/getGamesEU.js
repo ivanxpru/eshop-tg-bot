@@ -48,8 +48,10 @@ const getGamesEU = async (discount_b) => {
     data.sort((a, b) => (a.date_from < b.date_from || !b.date_from ? -1 : 1));
     const fs_ids = [];
 
-    for await (const doc of data) {
-      fs_ids.push(Number.parseInt(doc.fs_id, 10));
+    if (!discount_b) {
+      for await (const doc of data) {
+        fs_ids.push(Number.parseInt(doc.fs_id, 10));
+      }
     }
 
     let docs;
@@ -81,6 +83,7 @@ const getGamesEU = async (discount_b) => {
     }
 
     for await (const game of data) {
+      console.log(discount_b, channel, game.title);
       let result;
       await getGameEU(game, discount_b)
         .then((res) => {
@@ -132,9 +135,11 @@ const getGamesEU = async (discount_b) => {
               .then(async (res_sendPhoto) => {
                 result.game.file_id =
                   res_sendPhoto.photo[res_sendPhoto.photo.length - 1].file_id;
-                await getDB.addEU(result.game, games_eu).catch((err) => {
-                  logger.log('error', `getDB.addEU ${err}`);
-                });
+                if (!discount_b) {
+                  await getDB.addEU(result.game, games_eu).catch((err) => {
+                    logger.log('error', `getDB.addEU ${err}`);
+                  });
+                }
                 await delay(
                   Number.parseInt(process.env.DELAY_POST, 10) * 60 * 1000,
                 );
