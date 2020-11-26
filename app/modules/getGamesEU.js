@@ -83,6 +83,7 @@ const getGamesEU = async (discount_b) => {
     }
 
     for await (const game of data) {
+      console.log(game.title, channel, discount_b);
       let result;
       await getGameEU(game, discount_b)
         .then((res) => {
@@ -129,23 +130,23 @@ const getGamesEU = async (discount_b) => {
               });
           })
           .catch(async () => {
-            if (!discount_b) {
-              await bot.telegram
-                .sendPhoto(channel, result.post.image, options)
-                .then(async (res_sendPhoto) => {
-                  result.game.file_id =
-                    res_sendPhoto.photo[res_sendPhoto.photo.length - 1].file_id;
+            await bot.telegram
+              .sendPhoto(channel, result.post.image, options)
+              .then(async (res_sendPhoto) => {
+                result.game.file_id =
+                  res_sendPhoto.photo[res_sendPhoto.photo.length - 1].file_id;
+                if (!discount_b) {
                   await getDB.addEU(result.game, games_eu).catch((err) => {
                     logger.log('error', `getDB.addEU ${err}`);
                   });
-                  await delay(
-                    Number.parseInt(process.env.DELAY_POST, 10) * 60 * 1000,
-                  );
-                })
-                .catch((err) => {
-                  logger.log('error', `sendPhoto: ${err}`);
-                });
-            }
+                }
+                await delay(
+                  Number.parseInt(process.env.DELAY_POST, 10) * 60 * 1000,
+                );
+              })
+              .catch((err) => {
+                logger.log('error', `sendPhoto: ${err}`);
+              });
           });
       }
     }
