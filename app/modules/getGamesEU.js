@@ -9,9 +9,8 @@ const logger = require('./logger');
 const url_games_eu = process.env.URL_GAMES_EU;
 const games_eu = process.env.GAMES_EU;
 
-let channel;
-
 const getGamesEU = async (discount_b) => {
+  let channel;
   if (discount_b) {
     channel = process.env.CHANNEL_DISCOUNTS_EU;
   } else {
