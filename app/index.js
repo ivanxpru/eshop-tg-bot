@@ -22,7 +22,7 @@ bot.launch().catch((err) => {
     isRun = true;
     getAmiibo.getAllAmiibo(); // поиск Amiibo
     await delay(60 * 1000);
-    await getGamesEU(false); // поиск новых игр
+    getGamesEU(false); // поиск новых игр
     await delay(60 * 1000);
     getGamesEU(true); // поиск скидок
     await delay(60 * 1000);
