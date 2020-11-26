@@ -20,11 +20,11 @@ bot.launch().catch((err) => {
 (async () => {
   if (!isRun) {
     isRun = true;
-    getGamesEU(false); // поиск новых игр
+    getAmiibo.getAllAmiibo(); // поиск Amiibo
+    await delay(60 * 1000);
+    await getGamesEU(false); // поиск новых игр
     await delay(60 * 1000);
     getGamesEU(true); // поиск скидок
-    await delay(60 * 1000);
-    getAmiibo.getAllAmiibo(); // поиск Amiibo
     await delay(60 * 1000);
     isRun = false;
   }
@@ -36,11 +36,11 @@ setInterval(async () => {
   // getGamesXX(true): поиск скидок на игры
   if (!isRun) {
     isRun = true;
+    getAmiibo.getAllAmiibo();
+    await delay(60 * 1000);
     getGamesEU(false);
     await delay(60 * 1000);
     getGamesEU(true);
-    await delay(60 * 1000);
-    getAmiibo.getAllAmiibo();
     await delay(60 * 1000);
     isRun = false;
   }
