@@ -83,7 +83,6 @@ const getGamesEU = async (discount_b) => {
     }
 
     for await (const game of data) {
-      console.log(discount_b, channel, game.title);
       let result;
       await getGameEU(game, discount_b)
         .then((res) => {

@@ -37,23 +37,27 @@ const getPricesRU = (nsuid, discount_b) =>
         .json(url_ru)
         .then((res) => {
           if (res.prices && res.prices[0].regular_price) {
-            if (discount_b && res.prices[0].discount_price) {
-              const discount_end_date = new Date(
-                Date.parse(res.prices[0].discount_price.end_datetime),
-              );
-              const day = discount_end_date.getDate(discount_end_date);
-              const month = `0${discount_end_date.getMonth() + 1}`.slice(-2);
-              const year = discount_end_date.getFullYear(discount_end_date);
-              const price_discount_percentage_f =
-                100 -
-                (res.prices[0].discount_price.raw_value /
-                  res.prices[0].regular_price.raw_value) *
-                  100;
-              response.discount = `Скидка: -${Math.round(
-                price_discount_percentage_f,
-              )}% [до: ${day}.${month}.${year}]`;
-              response.prices_ru = `🇷🇺 ${res.prices[0].regular_price.raw_value}₽ → ${res.prices[0].discount_price.raw_value}₽ \n`;
-              response.discount_end_date = discount_end_date;
+            if (discount_b) {
+              if (res.prices[0].discount_price) {
+                const discount_end_date = new Date(
+                  Date.parse(res.prices[0].discount_price.end_datetime),
+                );
+                const day = discount_end_date.getDate(discount_end_date);
+                const month = `0${discount_end_date.getMonth() + 1}`.slice(-2);
+                const year = discount_end_date.getFullYear(discount_end_date);
+                const price_discount_percentage_f =
+                  100 -
+                  (res.prices[0].discount_price.raw_value /
+                    res.prices[0].regular_price.raw_value) *
+                    100;
+                response.discount = `Скидка: -${Math.round(
+                  price_discount_percentage_f,
+                )}% [до: ${day}.${month}.${year}]`;
+                response.prices_ru = `🇷🇺 ${res.prices[0].regular_price.raw_value}₽ → ${res.prices[0].discount_price.raw_value}₽ \n`;
+                response.discount_end_date = discount_end_date;
+              } else {
+                reject(new Error('getPricesRU'));
+              }
             } else {
               response.prices_ru = `🇷🇺 ${res.prices[0].regular_price.raw_value}₽ \n`;
             }
@@ -70,7 +74,7 @@ const getPricesRU = (nsuid, discount_b) =>
     })();
   });
 
-const getPricesEU = (nsuid, discount) =>
+const getPricesEU = (nsuid, discount_b) =>
   new Promise((resolve, reject) => {
     const response = {};
     response.prices_eu = '';
@@ -85,26 +89,32 @@ const getPricesEU = (nsuid, discount) =>
               const price_eu_regular = Math.round(
                 currency_eu * res.prices[0].regular_price.raw_value,
               );
-              if (discount && res.prices[0].discount_price) {
-                const discount_end_date = new Date(
-                  Date.parse(res.prices[0].discount_price.end_datetime),
-                );
-                const day = discount_end_date.getDate(discount_end_date);
-                const month = `0${discount_end_date.getMonth() + 1}`.slice(-2);
-                const year = discount_end_date.getFullYear(discount_end_date);
-                const price_discount_percentage_f =
-                  100 -
-                  (res.prices[0].discount_price.raw_value /
-                    res.prices[0].regular_price.raw_value) *
-                    100;
-                response.discount = `Скидка: -${Math.round(
-                  price_discount_percentage_f,
-                )}% [до: ${day}.${month}.${year}]`;
-                response.discount_end_date = discount_end_date;
-                const price_eu_discount = Math.round(
-                  currency_eu * res.prices[0].discount_price.raw_value,
-                );
-                response.prices_eu = `🇪🇺 ${price_eu_regular}₽ → ${price_eu_discount}₽ \n`;
+              if (discount_b) {
+                if (res.prices[0].discount_price) {
+                  const discount_end_date = new Date(
+                    Date.parse(res.prices[0].discount_price.end_datetime),
+                  );
+                  const day = discount_end_date.getDate(discount_end_date);
+                  const month = `0${discount_end_date.getMonth() + 1}`.slice(
+                    -2,
+                  );
+                  const year = discount_end_date.getFullYear(discount_end_date);
+                  const price_discount_percentage_f =
+                    100 -
+                    (res.prices[0].discount_price.raw_value /
+                      res.prices[0].regular_price.raw_value) *
+                      100;
+                  response.discount = `Скидка: -${Math.round(
+                    price_discount_percentage_f,
+                  )}% [до: ${day}.${month}.${year}]`;
+                  response.discount_end_date = discount_end_date;
+                  const price_eu_discount = Math.round(
+                    currency_eu * res.prices[0].discount_price.raw_value,
+                  );
+                  response.prices_eu = `🇪🇺 ${price_eu_regular}₽ → ${price_eu_discount}₽ \n`;
+                } else {
+                  reject(new Error('!discount'));
+                }
               } else {
                 response.prices_eu = `🇪🇺 ${price_eu_regular}₽\n`;
               }
@@ -123,7 +133,7 @@ const getPricesEU = (nsuid, discount) =>
     })();
   });
 
-const getPricesNONEU = (nsuid, discount) =>
+const getPricesNONEU = (nsuid, discount_b) =>
   new Promise((resolve, reject) => {
     const response = {};
     response.prices_noneu = '';
@@ -140,26 +150,32 @@ const getPricesNONEU = (nsuid, discount) =>
               const price_noneu_regular = Math.round(
                 currency_noneu * res.prices[0].regular_price.raw_value,
               );
-              if (discount && res.prices[0].discount_price) {
-                const discount_end_date = new Date(
-                  Date.parse(res.prices[0].discount_price.end_datetime),
-                );
-                const day = discount_end_date.getDate(discount_end_date);
-                const month = `0${discount_end_date.getMonth() + 1}`.slice(-2);
-                const year = discount_end_date.getFullYear(discount_end_date);
-                const price_discount_percentage_f =
-                  100 -
-                  (res.prices[0].discount_price.raw_value /
-                    res.prices[0].regular_price.raw_value) *
-                    100;
-                response.discount = `Скидка: -${Math.round(
-                  price_discount_percentage_f,
-                )}% [до: ${day}.${month}.${year}]`;
-                response.discount_end_date = discount_end_date;
-                const price_eu_discount = Math.round(
-                  currency_noneu * res.prices[0].discount_price.raw_value,
-                );
-                response.prices_noneu += `${regions.NONEU[region].flag} ${price_noneu_regular}₽ → ${price_eu_discount}₽ \n`;
+              if (discount_b) {
+                if (res.prices[0].discount_price) {
+                  const discount_end_date = new Date(
+                    Date.parse(res.prices[0].discount_price.end_datetime),
+                  );
+                  const day = discount_end_date.getDate(discount_end_date);
+                  const month = `0${discount_end_date.getMonth() + 1}`.slice(
+                    -2,
+                  );
+                  const year = discount_end_date.getFullYear(discount_end_date);
+                  const price_discount_percentage_f =
+                    100 -
+                    (res.prices[0].discount_price.raw_value /
+                      res.prices[0].regular_price.raw_value) *
+                      100;
+                  response.discount = `Скидка: -${Math.round(
+                    price_discount_percentage_f,
+                  )}% [до: ${day}.${month}.${year}]`;
+                  response.discount_end_date = discount_end_date;
+                  const price_eu_discount = Math.round(
+                    currency_noneu * res.prices[0].discount_price.raw_value,
+                  );
+                  response.prices_noneu += `${regions.NONEU[region].flag} ${price_noneu_regular}₽ → ${price_eu_discount}₽ \n`;
+                } else {
+                  reject(new Error('getPricesNONEU'));
+                }
               } else {
                 response.prices_noneu += `${regions.NONEU[region].flag} ${price_noneu_regular}₽\n`;
               }
@@ -238,7 +254,7 @@ exports.EU = (nsuid, discount_b) =>
       }
       if (prices) {
         response.prices = prices;
-        if (discount) {
+        if (discount_b) {
           response.discount_end_date = discount_end_date;
           response.prices += `\n\`${discount}\``;
         }

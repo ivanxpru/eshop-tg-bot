@@ -101,7 +101,7 @@ const getData = (data) => {
 };
 
 const getGameEU = (data, discount_b) =>
-  new Promise((resolve, _reject) => {
+  new Promise((resolve, reject) => {
     (async () => {
       const response = [];
       const game = getData(data);
@@ -176,10 +176,12 @@ const getGameEU = (data, discount_b) =>
         keyboard.push(buttons);
       }
       */
-      if (prices) {
+      if ((prices && !discount_b) || (prices && discount_b)) {
         post.message = `${title}\n\n${description}\n${hashtags}\n\n${prices.prices}`;
-      } else {
+      } else if (!prices && !discount_b) {
         post.message = `${title}\n\n${description}\n${hashtags}\n\nSOLD OUT`;
+      } else if (!prices && discount_b) {
+        return reject();
       }
       post.image = image;
       if (keyboard) {

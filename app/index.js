@@ -20,12 +20,12 @@ bot.launch().catch((err) => {
 (async () => {
   if (!isRun) {
     isRun = true;
-    // getGamesEU(false); // поиск новых игр
-    // await delay(60 * 1000);
-    // getGamesEU(true); // поиск скидок
-    // await delay(60 * 1000);
+    getGamesEU(false); // поиск новых игр
+    await delay(60 * 1000);
+    getGamesEU(true); // поиск скидок
+    await delay(60 * 1000);
     getAmiibo.getAllAmiibo(); // поиск Amiibo
-    // await delay(60 * 1000);
+    await delay(60 * 1000);
     isRun = false;
   }
 })();
